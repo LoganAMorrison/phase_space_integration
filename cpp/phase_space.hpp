@@ -593,6 +593,35 @@ integrate_phase_space(MSqrd msqrd, double cme, const std::array<double, N> &ms,
   return std::make_pair(mean, std);
 }
 
+template <class MSqrd, size_t N>
+static auto integrate_phase_space_single_thread(
+    MSqrd msqrd, double cme, const std::array<double, N> &ms,
+    const size_t nevents = detail::DEFAULT_NEVENTS)
+    -> std::pair<double, double> {
+  const double base_wgt = detail::massless_weight<N>(cme);
+  const double inv_nevents = 1.0 / static_cast<double>(nevents);
+
+  double mean = 0.0;
+  double m2 = 0.0;
+  double count = 0.0;
+
+  MomentaType<N> momenta{};
+
+  // generate 'local' events
+  for (size_t i = 0; i < nevents; i++) { // NOLINT
+    const auto wgt = detail::generate_wgt(msqrd, &momenta, cme, ms, base_wgt);
+    const auto delta = wgt - mean;
+    mean += delta / static_cast<double>(i + 1);
+    m2 += delta * (1.0 + delta * i / static_cast<double>(i + 1));
+  }
+
+  // Compute global mean and std
+  const double var = m2 / static_cast<double>(count - 1);
+  const double std = sqrt(var * inv_nevents);
+
+  return std::make_pair(mean, std);
+}
+
 /// Compute the decay width of a particle.
 ///
 /// @param msqrd Function to compute squared matrix element given the momenta

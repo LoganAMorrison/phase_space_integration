@@ -8,17 +8,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
-option(OPTIMIZE_FOR_NATIVE "Build with -march=native" OFF)
-CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
+# option(OPTIMIZE_FOR_NATIVE "Build with -march=native" ON)
+check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
 if(COMPILER_SUPPORTS_MARCH_NATIVE)
-  if(OPTIMIZE_FOR_NATIVE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-  endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
 
 find_package(Threads REQUIRED)
 
-add_executable(test_muon_decay "${CMAKE_CURRENT_SOURCE_DIR}/test_muon_decay.cpp")
+add_executable(test_muon_decay
+               "${CMAKE_CURRENT_SOURCE_DIR}/test_muon_decay.cpp")
 target_link_libraries(test_muon_decay PRIVATE Threads::Threads)
 target_include_directories(test_muon_decay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -27,12 +26,19 @@ target_include_directories(test_muon_decay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(Boost REQUIRED)
 find_package(GSL REQUIRED)
 
-add_executable(thermal_cross_section "${CMAKE_CURRENT_SOURCE_DIR}/thermal_cross_section.cpp")
-target_link_libraries(thermal_cross_section 
-  PRIVATE 
-  Threads::Threads
-  GSL::gsl
-  GSL::gslcblas
-  ${Boost_LIBRARIES}
-)
-target_include_directories(thermal_cross_section PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${Boost_INCLUDE_DIRS})
+add_executable(thermal_cross_section
+               "${CMAKE_CURRENT_SOURCE_DIR}/thermal_cross_section.cpp")
+target_link_libraries(
+  thermal_cross_section PRIVATE Threads::Threads GSL::gsl GSL::gslcblas
+                                ${Boost_LIBRARIES})
+target_include_directories(
+  thermal_cross_section PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+                               ${Boost_INCLUDE_DIRS})
+
+add_executable(benchmark_generator
+               "${CMAKE_CURRENT_SOURCE_DIR}/benchmark_generator.cpp")
+target_link_libraries(
+  benchmark_generator PRIVATE Threads::Threads GSL::gsl GSL::gslcblas
+                              ${Boost_LIBRARIES})
+target_include_directories(
+  benchmark_generator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${Boost_INCLUDE_DIRS})
